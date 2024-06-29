@@ -82,6 +82,8 @@ class LoadedGaussianPolicy(BasePolicy, nn.Module):
         if self.obs_dim != obs.shape[-1]:
             n_pad = self.obs_dim - obs.shape[-1]
             if n_pad > 0:
+                obs = torch.from_numpy(obs)
+                obs.requires_grad = True
                 obs = nn.functional.pad(obs, (0, n_pad), 'constant')
             else:
                 obs = obs[:, :self.obs_dim]

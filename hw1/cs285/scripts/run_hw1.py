@@ -145,8 +145,11 @@ def run_training_loop(params):
                 # HINT: query the policy (using the get_action function) with paths[i]["observation"]
                 # and replace paths[i]["action"] with these expert labels
                 # paths is a list of dictionaries, path[i] gives a dictionary of i trajectory
-                for i in range(len(paths)): paths[i]['action'] = expert_policy(paths[i]['observation'])
                 # paths = TODO
+
+                for i in range(len(paths)): paths[i]['action'] = expert_policy(paths[i]['observation']).detach()
+                # need to detach the actions bc expert data doesn't need the gradients
+                # RuntimeError: Can't call numpy() on Tensor that requires grad. Use tensor.detach().numpy() instead.
 
         total_envsteps += envsteps_this_batch
         # add collected data to replay buffer

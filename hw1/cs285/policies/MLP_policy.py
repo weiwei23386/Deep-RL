@@ -127,6 +127,7 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
         )
         self.logstd.to(ptu.device)
+        # print(ptu.device)
         self.optimizer = optim.Adam(
             itertools.chain([self.logstd], self.mean_net.parameters()),
             # to concatenate the logstd parameter (wrapped in a list) with the parameters of mean_net.
@@ -150,6 +151,7 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             action: sampled action(s) from the policy
         """
         # Query mean_net to get mean values
+        observation = torch.from_numpy(observation).float()
         mean = self.mean_net(observation)
 
         # Create a Gaussian distribution with mean an std_deviation
@@ -179,6 +181,10 @@ class MLPPolicySL(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         """
         # TODO: update the policy and return the loss
         action_preds = self.forward(observations)
+        # print('type', type(action_preds), type(actions))
+        # type <class 'torch.Tensor'> <class 'numpy.ndarray'>
+        actions = torch.from_numpy(actions)
+        actions.requires_grad=True
         loss = torch.nn.MSELoss()(action_preds, actions)
         self.optimizer.zero_grad()
         loss.backward()

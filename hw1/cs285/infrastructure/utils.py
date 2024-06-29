@@ -19,7 +19,7 @@ def sample_trajectory(env, policy, max_path_length, render=False):
     """Sample a rollout in the environment from a policy."""
     
     # initialize env for the beginning of a new rollout
-    ob =  env.reset() # TODO: initial observation after resetting the env given by gym
+    ob = env.reset(seed=42) # TODO: initial observation after resetting the env given by gym
 
     # save a list of observtions, a list of actions
     # init vars
@@ -39,11 +39,14 @@ def sample_trajectory(env, policy, max_path_length, render=False):
         # get the next action
         # HINT: this is a numpy array
         ac = policy(ob)
-        ac = ac[0]
+        ac = ac.numpy()
+        # ac = ac[0]
+        # print('sample action:', ac, ac.shape)
+        # sample action: tensor(1.2767) torch.Size([])
 
         # TODO: take that action and get reward and next ob
         next_ob, rew, done, _ = env.step(ac)
-        
+        # next_ob, rew, done, _, _ = env.step(ac)
         # TODO rollout can end due to done, or due to max_path_length
         steps += 1
         # if steps > max_path_length:
@@ -53,7 +56,7 @@ def sample_trajectory(env, policy, max_path_length, render=False):
         rollout_done = 1 if steps > max_path_length else done
         # if it is done/terminated, it'll return 1 (meaning true)
         # rollout_done = done # HINT: this is either 0 or 1
-        
+
         # record result of taking that action
         obs.append(ob)
         acs.append(ac)
@@ -62,7 +65,6 @@ def sample_trajectory(env, policy, max_path_length, render=False):
         terminals.append(rollout_done)
 
         ob = next_ob # jump to next timestep
-
         # end the rollout if the rollout ended
         if rollout_done:
             break
@@ -113,6 +115,8 @@ def convert_listofrollouts(paths, concat_rew=True):
         and return separate arrays,
         where each array is a concatenation of that array from across the rollouts
     """
+    # print('paths', type(paths))
+    # paths <class 'list'>
     observations = np.concatenate([path["observation"] for path in paths])
     actions = np.concatenate([path["action"] for path in paths])
     if concat_rew:
