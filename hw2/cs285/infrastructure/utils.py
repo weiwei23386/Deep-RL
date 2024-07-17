@@ -30,17 +30,22 @@ def sample_trajectory(
             )
 
         # TODO use the most recent ob and the policy to decide what to do
-        ac: np.ndarray = None
+        # policy input should be torch tensor, so convert ob to tensor
+        obs.append(ob)
+        ob = ptu.from_numpy(ob)
+        action_dists = policy(ob)
+        ac: np.ndarray = action_dists.sample().cpu().numpy()
 
         # TODO: use that action to take a step in the environment
-        next_ob, rew, done, _ = None, None, None, None
+        # next_ob, rew, done, _ = None, None, None, None # change to env.step(ac)
+        next_ob, rew, done, _ = env.step(ac)
 
         # TODO rollout can end due to done, or due to max_length
         steps += 1
-        rollout_done: bool = None
+        rollout_done: bool = 1 if steps>max_length else done
 
         # record result of taking that action
-        obs.append(ob)
+        # print(obs)
         acs.append(ac)
         rewards.append(rew)
         next_obs.append(next_ob)
@@ -65,7 +70,7 @@ def sample_trajectory(
 def sample_trajectories(
     env: gym.Env,
     policy: MLPPolicy,
-    min_timesteps_per_batch: int,
+    min_timesteps_per_batch: int, # batch size
     max_length: int,
     render: bool = False,
 ) -> Tuple[List[Dict[str, np.ndarray]], int]:

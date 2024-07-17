@@ -70,15 +70,27 @@ def run_training_loop(args):
         print(f"\n********** Iteration {itr} ************")
         # TODO: sample `args.batch_size` transitions using utils.sample_trajectories
         # make sure to use `max_ep_len`
-        trajs, envsteps_this_batch = None, None  # TODO
+        trajs, envsteps_this_batch = utils.sample_trajectories(env, agent.actor, args.batch_size, max_ep_len) # TODO:Done
         total_envsteps += envsteps_this_batch
 
         # trajs should be a list of dictionaries of NumPy arrays, where each dictionary corresponds to a trajectory.
         # this line converts this into a single dictionary of lists of NumPy arrays.
         trajs_dict = {k: [traj[k] for traj in trajs] for k in trajs[0]}
+        # print(trajs_dict['reward'], type(trajs_dict['reward']), len(trajs_dict['reward'])) # list of numpy arrays, length = 40
 
         # TODO: train the agent using the sampled trajectories and the agent's update function
-        train_info: dict = None
+        # obs = np.concatenate(trajs_dict['observation'])
+        # act = np.concatenate(trajs_dict['action'])
+        # rew = np.concatenate(trajs_dict['reward']) # numpy array, shape(1001,)
+        # term = np.concatenate(trajs_dict['terminal'])
+        obs = trajs_dict['observation']
+        act = trajs_dict['action']
+        rew = trajs_dict['reward']
+        term = trajs_dict['terminal']
+        # print(len(obs), len(act)) # a list of numpy arrays, length = traj_num
+        # print(rew, type(rew), len(rew)) 
+
+        train_info: dict = agent.update(obs, act, rew, term)
 
         if itr % args.scalar_log_freq == 0:
             # save eval metrics
@@ -98,6 +110,7 @@ def run_training_loop(args):
                 ]
 
             # perform the logging
+
             for key, value in logs.items():
                 print("{} : {}".format(key, value))
                 logger.log_scalar(value, key, itr)
@@ -152,11 +165,11 @@ def main():
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--no_gpu", "-ngpu", action="store_true")
     parser.add_argument("--which_gpu", "-gpu_id", default=0)
-    parser.add_argument("--video_log_freq", type=int, default=-1)
+    parser.add_argument("--video_log_freq", type=int, default=20)
     parser.add_argument("--scalar_log_freq", type=int, default=1)
 
     parser.add_argument("--action_noise_std", type=float, default=0)
-
+    parser.add_argument('-f')  # to avoid error when debugging
     args = parser.parse_args()
 
     # create directory for logging
