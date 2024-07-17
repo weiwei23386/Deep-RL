@@ -9,6 +9,7 @@ __pycache__/
 # Distribution / packaging
 *.tex
 *.pdf
+*.DS_Store
 .Python
 build/
 develop-eggs/
